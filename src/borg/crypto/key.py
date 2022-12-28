@@ -649,10 +649,9 @@ class FlexiKey:
     def _find_key_in_keys_dir(self):
         id = self.repository.id
         keys_dir = get_keys_dir()
-        for name in os.listdir(keys_dir):
-            filename = os.path.join(keys_dir, name)
+        for file in os.scandir(keys_dir):
             try:
-                return self.sanity_check(filename, id)
+                return self.sanity_check(file.path, id)
             except (KeyfileInvalidError, KeyfileMismatchError):
                 pass
 

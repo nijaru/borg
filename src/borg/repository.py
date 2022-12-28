@@ -274,7 +274,7 @@ class Repository:
             # there is something already there!
             if self.is_repository(path):
                 raise self.AlreadyExists(path)
-            if not stat.S_ISDIR(st.st_mode) or os.listdir(path):
+            if not stat.S_ISDIR(st.st_mode) or os.scandir(path):
                 raise self.PathAlreadyExists(path)
             # an empty directory is acceptable for us.
 
@@ -409,9 +409,9 @@ class Repository:
 
     def get_index_transaction_id(self):
         indices = sorted(
-            int(fn[6:])
-            for fn in os.listdir(self.path)
-            if fn.startswith("index.") and fn[6:].isdigit() and os.stat(os.path.join(self.path, fn)).st_size != 0
+            int(f[6:])
+            for f in os.scandir(self.path)
+            if f.name.startswith("index.") and f.name[6:].isdigit() and os.stat(f.path).st_size != 0
         )
         if indices:
             return indices[-1]
@@ -710,12 +710,12 @@ class Repository:
 
         # Remove old auxiliary files
         current = ".%d" % transaction_id
-        for name in os.listdir(self.path):
-            if not name.startswith(("index.", "hints.", "integrity.")):
+        for file in os.scandir(self.path):
+            if not file.name.startswith(("index.", "hints.", "integrity.")):
                 continue
-            if name.endswith(current):
+            if file.name.endswith(current):
                 continue
-            os.unlink(os.path.join(self.path, name))
+            os.unlink(file.path)
         self.index = None
 
     def check_free_space(self):
@@ -1414,14 +1414,14 @@ class LoggedIO:
         data_path = os.path.join(self.path, "data")
         start_segment_dir = start_segment // self.segments_per_dir
         end_segment_dir = end_segment // self.segments_per_dir
-        dirs = os.listdir(data_path)
+        dirs = [d.name for d in os.scandir(data_path)]
         if not reverse:
             dirs = [dir for dir in dirs if dir.isdigit() and start_segment_dir <= int(dir) <= end_segment_dir]
         else:
             dirs = [dir for dir in dirs if dir.isdigit() and start_segment_dir >= int(dir) >= end_segment_dir]
         dirs = sorted(dirs, key=int, reverse=reverse)
         for dir in dirs:
-            filenames = os.listdir(os.path.join(data_path, dir))
+            filenames = [f.name for f in os.scandir(os.path.join(data_path, dir))]
             if not reverse:
                 filenames = [
                     filename

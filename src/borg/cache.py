@@ -255,7 +255,7 @@ def files_cache_name():
 
 
 def discover_files_cache_name(path):
-    return [fn for fn in os.listdir(path) if fn == "files" or fn.startswith("files.")][0]
+    return [fn for fn in [f.name for f in os.scandir(path)] if fn == "files" or fn.startswith("files.")][0]
 
 
 class CacheConfig:
@@ -725,7 +725,7 @@ class LocalCache(CacheStatsMixin):
 
         def cached_archives():
             if self.do_cache:
-                fns = os.listdir(archive_path)
+                fns = [file.name for file in os.scandir(archive_path)]
                 # filenames with 64 hex digits == 256bit,
                 # or compact indices which are 64 hex digits + ".compact"
                 return {unhexlify(fn) for fn in fns if len(fn) == 64} | {

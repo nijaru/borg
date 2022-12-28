@@ -188,7 +188,7 @@ class ExclusiveLock:
 
     def kill_stale_lock(self):
         try:
-            names = os.listdir(self.path)
+            names = [file.name for file in os.scandir(self.path)]
         except FileNotFoundError:  # another process did our job in the meantime.
             pass
         else:
@@ -239,8 +239,8 @@ class ExclusiveLock:
 
     def break_lock(self):
         if self.is_locked():
-            for name in os.listdir(self.path):
-                os.unlink(os.path.join(self.path, name))
+            for file in os.scandir(self.path):
+                os.unlink(file.path)
             os.rmdir(self.path)
 
     def migrate_lock(self, old_id, new_id):
